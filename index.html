@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>매일퀴즈</title>
+<meta name="description" content="매일퀴즈 관리 화면">
+<meta name="theme-color" content="#4f46e5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="매일퀴즈">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%234f46e5'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='700'%3EQ%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f4f5f8; --card:#ffffff; --text:#1c1d22; --muted:#6b6f7b; --line:#e4e6eb;
+  --accent:#4f46e5; --accent-weak:#eef0ff; --ok:#15803d; --ok-weak:#e8f6ec;
+  --bad:#c2410c; --bad-weak:#fdeee6; --warn:#a16207; --shadow:0 1px 2px rgba(0,0,0,.05),0 2px 8px rgba(0,0,0,.04);
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111216; --card:#1b1c22; --text:#ececf1; --muted:#9a9eab; --line:#2c2e36;
+    --accent:#8b85ff; --accent-weak:#25234a; --ok:#4ade80; --ok-weak:#163322;
+    --bad:#fb923c; --bad-weak:#3a2216; --warn:#facc15; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111216; --card:#1b1c22; --text:#ececf1; --muted:#9a9eab; --line:#2c2e36;
+  --accent:#8b85ff; --accent-weak:#25234a; --ok:#4ade80; --ok-weak:#163322;
+  --bad:#fb923c; --bad-weak:#3a2216; --warn:#facc15; --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR",sans-serif;-webkit-text-size-adjust:100%;overflow-x:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top) + 12px) 16px 8px;display:flex;align-items:center;justify-content:space-between}
+header.top h1{font-size:22px;margin:0;font-weight:700}
+main{padding:4px 16px calc(84px + env(safe-area-inset-bottom));max-width:720px;margin:0 auto}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line);padding:14px;margin:10px 0}
+h2.sec{font-size:13px;color:var(--muted);font-weight:600;margin:20px 4px 6px;letter-spacing:.02em}
+.row{display:flex;align-items:center;gap:10px}
+.grow{flex:1;min-width:0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.list .item{display:flex;align-items:center;gap:12px;padding:12px 2px;border-top:1px solid var(--line)}
+.list .item:first-child{border-top:0}
+.name{font-weight:600;overflow-wrap:anywhere}
+.btn{appearance:none;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.danger{color:var(--bad)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--accent);padding:6px 8px}
+.btn.big{width:100%;padding:14px;font-size:16px;border-radius:12px}
+.btn:disabled{opacity:.5}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.switch{position:relative;width:48px;height:28px;flex:none}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.switch span{position:absolute;inset:0;border-radius:99px;background:var(--line);transition:.15s}
+.switch span::after{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:.15s}
+.switch input:checked+span{background:var(--accent)}
+.switch input:checked+span::after{transform:translateX(20px)}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--accent-weak);color:var(--accent);margin-right:4px;vertical-align:1px}
+.badge.bad{background:var(--bad-weak);color:var(--bad)}
+.badge.ok{background:var(--ok-weak);color:var(--ok)}
+.chip{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);margin:2px 4px 2px 0}
+input[type=text],input[type=search],input[type=number],input[type=url],input[type=password],select,textarea{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;outline:none}
+textarea{min-height:70px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+label.f{display:block;margin:10px 0 4px;font-size:13px;color:var(--muted);font-weight:600}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.filters .full{grid-column:1/-1}
+.q .qtext{white-space:pre-wrap;overflow-wrap:anywhere}
+.q.clamp .qtext{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.q.sel{outline:2px solid var(--accent)}
+.detail{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.kv{margin:6px 0}
+.kv b{display:block;font-size:12px;color:var(--muted);font-weight:600}
+.kv div{white-space:pre-wrap;overflow-wrap:anywhere}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.tile .v{font-size:22px;font-weight:700}
+.tile .l{font-size:12px;color:var(--muted)}
+.bars{display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:8px}
+.bars .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;min-width:0}
+.bars .col{width:100%;border-radius:4px 4px 0 0;background:var(--accent-weak);position:relative;min-height:2px}
+.bars .col i{position:absolute;left:0;right:0;bottom:0;background:var(--accent);border-radius:4px 4px 0 0}
+.bars .d{font-size:10px;color:var(--muted);margin-top:4px}
+.bars .n{font-size:10px;color:var(--muted)}
+.meter{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;background:var(--accent)}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--card);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs button{appearance:none;border:0;background:none;padding:8px 0 7px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-size:11px;cursor:pointer}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button.on{color:var(--accent);font-weight:700}
+.selbar{position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));z-index:9;padding:10px 16px;background:var(--card);border-top:1px solid var(--line);display:flex;gap:8px;align-items:center}
+.overlay{position:fixed;inset:0;z-index:20;background:var(--bg);overflow:auto;padding:calc(env(safe-area-inset-top) + 10px) 16px calc(env(safe-area-inset-bottom) + 20px)}
+.overlay .inner{max-width:640px;margin:0 auto}
+.modal{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center}
+.modal .sheet{background:var(--bg);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(env(safe-area-inset-bottom) + 16px)}
+.choice{display:block;width:100%;text-align:left;margin:8px 0;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:16px;cursor:pointer}
+.choice.skip{color:var(--muted);text-align:center;background:transparent}
+.choice:disabled{opacity:.45}
+.fb{border-radius:12px;padding:12px 14px;margin:12px 0;font-weight:600}
+.fb.ok{background:var(--ok-weak);color:var(--ok)}
+.fb.bad{background:var(--bad-weak);color:var(--bad)}
+.qbig{font-size:19px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 14px}
+.toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:50;font-size:14px;max-width:calc(100% - 32px)}
+.empty{text-align:center;color:var(--muted);padding:28px 8px}
+.seg{display:flex;background:var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;appearance:none;border:0;background:transparent;border-radius:8px;padding:7px;font-weight:600;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--card);color:var(--text)}
+.spin{display:inline-block;width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-4px}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* 배포한 Apps Script 웹앱 /exec 주소를 여기에 넣어두면 처음 화면에 자동으로 채워집니다(선택). */
+const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbxHWayxeDls3Zi5b84ZnfItEhmMGoVp0l2EJrWksFM-L-eOEMlTEDSOBQzQa-w1ZJGb/exec';
+
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} },
+};
+const S = {
+  api: store.get('mq_api') || DEFAULT_API,
+  token: store.get('mq_token') || '',
+  tab: store.get('mq_tab') || 'home',
+  boot: null, qs: null, stats: null, loading: false,
+  f: { cat:'', src:'', text:'', only:'' },
+  selMode: false, sel: new Set(), open: new Set(),
+  wrongSort: 'recent', deckOpen: null,
+};
+const TABS = [
+  ['home','홈','<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>'],
+  ['questions','문제','<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'],
+  ['decks','덱','<rect x="3" y="7" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/>'],
+  ['wrong','오답','<circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/>'],
+  ['stats','기록','<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],
+  ['settings','설정','<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'],
+];
+const TYPE_LABEL = { mcq:'객관식', ox:'OX', short:'단답', cloze:'빈칸' };
+
+/* ───── 공통 ───── */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pct = v => v == null ? '–' : v + '%';
+function fmt(d){
+  if(!d) return '';
+  const x = new Date(d); if(isNaN(x)) return '';
+  const p = n => String(n).padStart(2,'0');
+  return `${x.getMonth()+1}/${x.getDate()} ${p(x.getHours())}:${p(x.getMinutes())}`;
+}
+function toast(msg){
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2400);
+}
+async function api(action, params){
+  const body = Object.assign({ action, token: S.token }, params || {});
+  let res;
+  try{
+    res = await fetch(S.api, { method:'POST', body: JSON.stringify(body) });
+  }catch(e){ throw new Error('서버에 연결할 수 없어요. 주소를 확인하세요.'); }
+  let j;
+  try{ j = await res.json(); }catch(e){ throw new Error('응답을 읽을 수 없어요 (배포 설정·주소 확인).'); }
+  if(j.error === 'unauthorized'){ S.token=''; store.del('mq_token'); render(); throw new Error('토큰이 맞지 않아요.'); }
+  if(j.error) throw new Error(j.error);
+  return j;
+}
+async function run(fn, okMsg){
+  try{ const r = await fn(); if(okMsg) toast(okMsg); return r; }
+  catch(e){ toast(e.message); }
+}
+async function loadAll(){
+  S.loading = true; render();
+  try{
+    const [b, q] = await Promise.all([api('bootstrap'), api('questions')]);
+    S.boot = b; S.qs = q.questions;
+    if(S.tab === 'stats') S.stats = await api('stats');
+  }catch(e){ toast(e.message); }
+  S.loading = false; render();
+}
+function setTab(t){
+  S.tab = t; store.set('mq_tab', t); S.selMode = false; S.sel.clear();
+  if(t === 'stats') run(async () => { S.stats = await api('stats'); render(); });
+  render(); window.scrollTo(0,0);
+}
+
+/* ───── 렌더 ───── */
+function render(){
+  const app = $('#app');
+  if(!S.api || !S.token){ app.innerHTML = viewLogin(); return; }
+  const title = TABS.find(t => t[0] === S.tab)[1];
+  app.innerHTML = `
+    <header class="top"><h1>${S.tab === 'home' ? '매일퀴즈' : title}</h1>
+      <button class="btn ghost" data-act="reload" aria-label="새로고침">${S.loading ? '<span class="spin"></span>' : '새로고침'}</button></header>
+    <main>${S.boot ? VIEWS[S.tab]() : '<div class="empty"><span class="spin"></span></div>'}</main>
+    ${S.selMode ? selBar() : ''}
+    <nav class="tabs">${TABS.map(([k,l,ic]) => `<button data-act="tab" data-v="${k}" class="${S.tab===k?'on':''}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ic}</svg>${l}</button>`).join('')}</nav>`;
+}
+
+function viewLogin(){
+  return `<main style="padding-top:calc(env(safe-area-inset-top) + 40px)">
+    <h1 style="font-size:26px;margin:0 0 4px">매일퀴즈</h1>
+    <p class="muted">처음 한 번만 연결 정보를 입력하면 이 기기에 저장돼요.</p>
+    <div class="card">
+      <label class="f" for="in-api">Apps Script 웹앱 주소 (/exec)</label>
+      <input id="in-api" type="url" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(S.api)}">
+      <label class="f" for="in-token">토큰 (SECRET)</label>
+      <input id="in-token" type="password" autocomplete="off" value="">
+      <div style="margin-top:14px"><button class="btn primary big" data-act="login">연결하기</button></div>
+    </div></main>`;
+}
+
+function sw(act, attrs, on){
+  return `<label class="switch"><input type="checkbox" data-act="${act}" ${attrs} ${on?'checked':''}><span></span></label>`;
+}
+function scopeRow(kind, s){
+  const meta = `${s.count}문제 · 정답률 ${pct(s.accuracy)}`;
+  return `<div class="item"><div class="grow"><div class="name">${kind==='wrong' ? '오답 모음' : esc(s.name)}</div>
+    <div class="muted small">${meta}</div></div>
+    ${sw('scope', `data-kind="${kind}" data-name="${esc(s.name||'')}"`, s.active)}</div>`;
+}
+
+const VIEWS = {
+  home(){
+    const b = S.boot, st = b.settings;
+    const cool = st.last_quiz_at ? `마지막 퀴즈 ${fmt(st.last_quiz_at)} · 쿨다운 ${st.cooldown_min}분` : '아직 단축어로 푼 퀴즈가 없어요';
+    return `
+      <div class="card"><div class="row"><div class="grow">
+        <div class="muted small">지금 출제 범위</div>
+        <div style="font-size:26px;font-weight:700">${b.active_count}<span class="small muted" style="font-weight:500"> / 전체 ${b.total}문제</span></div>
+        <div class="muted small">${esc(cool)}</div></div></div>
+        <div style="margin-top:12px"><button class="btn primary big" data-act="practice" data-scope="active" data-label="출제 범위" ${b.active_count?'':'disabled'}>지금 연습하기</button></div>
+      </div>
+      <h2 class="sec">카테고리</h2>
+      <div class="card list">${b.categories.length ? b.categories.map(c => scopeRow('category', c)).join('') : '<div class="empty">문제가 아직 없어요. Questions 시트에 행을 추가하세요.</div>'}</div>
+      <h2 class="sec">덱</h2>
+      <div class="card list">${b.decks.length ? b.decks.map(d => scopeRow('deck', d)).join('') : '<div class="empty">덱이 없어요. 덱 탭에서 만들 수 있어요.</div>'}</div>
+      <h2 class="sec">오답</h2>
+      <div class="card list">${scopeRow('wrong', b.wrong)}</div>
+      <p class="muted small" style="margin:12px 4px">켜진 카테고리·덱·오답을 합친 범위(중복 제외)에서 출제돼요.</p>`;
+  },
+
+  questions(){
+    const b = S.boot, f = S.f;
+    const list = filteredQs();
+    return `
+      <div class="filters">
+        <select data-act="f" data-k="cat"><option value="">모든 카테고리</option>${b.categories.map(c => `<option ${f.cat===c.name?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+        <select data-act="f" data-k="src"><option value="">모든 출처</option>${b.sources.map(s => `<option ${f.src===s?'selected':''}>${esc(s)}</option>`).join('')}</select>
+        <input class="full" type="search" placeholder="문제·정답·해설 검색" data-act="f" data-k="text" value="${esc(f.text)}">
+      </div>
+      <div class="row" style="margin:10px 2px 0">
+        <div class="grow muted small">${list.length}문제</div>
+        <button class="btn ghost" data-act="selmode">${S.selMode ? '선택 취소' : '여러 개 선택'}</button>
+      </div>
+      ${list.length ? list.map(q => qCard(q)).join('') : '<div class="empty">조건에 맞는 문제가 없어요.</div>'}
+      ${S.selMode ? '<div style="height:64px"></div>' : ''}`;
+  },
+
+  decks(){
+    const b = S.boot;
+    return `
+      <div class="card"><label class="f" for="new-deck" style="margin-top:0">새 덱</label>
+        <div class="row"><input id="new-deck" type="text" placeholder="예: 시험 전날 복습" class="grow"><button class="btn primary" data-act="deckCreate">만들기</button></div>
+        <p class="muted small" style="margin:8px 0 0">문제 탭에서 여러 문제를 골라 덱에 담을 수 있어요.</p></div>
+      ${b.decks.length ? b.decks.map(d => deckCard(d)).join('') : '<div class="empty">아직 덱이 없어요.</div>'}`;
+  },
+
+  wrong(){
+    const list = S.qs.filter(q => q.progress && q.progress.in_wrong);
+    const fr = q => q.progress.wrong_count + q.progress.skip_count;
+    list.sort(S.wrongSort === 'recent'
+      ? (a,b) => new Date(b.last_wrong_at||0) - new Date(a.last_wrong_at||0)
+      : (a,b) => fr(b) - fr(a) || new Date(b.last_wrong_at||0) - new Date(a.last_wrong_at||0));
+    return `
+      <div class="seg" style="margin-top:4px">
+        <button data-act="wsort" data-v="recent" class="${S.wrongSort==='recent'?'on':''}">최근 틀린 순</button>
+        <button data-act="wsort" data-v="freq" class="${S.wrongSort==='freq'?'on':''}">자주 틀린 순</button></div>
+      <div style="margin:10px 0"><button class="btn primary big" data-act="practice" data-scope="wrong" data-label="오답" ${list.length?'':'disabled'}>오답만 연습하기 (${list.length})</button></div>
+      ${list.length ? list.map(q => qCard(q, { wrong:true })).join('') : '<div class="empty">오답이 없어요 🎉</div>'}
+      <p class="muted small" style="margin:12px 4px">첫 시도에 틀리거나 건너뛴 문제가 들어오고, 이후 첫 시도에 2번 연속 맞히면 빠져요.</p>`;
+  },
+
+  stats(){
+    const s = S.stats;
+    if(!s) return '<div class="empty"><span class="spin"></span></div>';
+    const tiles = (o) => `<div class="tiles">
+      <div class="tile"><div class="v">${o.solved}</div><div class="l">푼 문제</div></div>
+      <div class="tile"><div class="v">${pct(o.accuracy)}</div><div class="l">정답률</div></div>
+      <div class="tile"><div class="v">${o.skip}</div><div class="l">건너뜀</div></div></div>`;
+    const max = Math.max(1, ...s.daily.map(d => d.solved));
+    return `
+      <h2 class="sec">오늘</h2>${tiles(s.today)}
+      <h2 class="sec">이번 주 (월요일부터)</h2>${tiles(s.week)}
+      <h2 class="sec">최근 14일 풀이 수</h2>
+      <div class="card"><div class="bars" role="img" aria-label="최근 14일 풀이 수">
+        ${s.daily.map(d => `<div class="b" title="${d.date}: ${d.solved}문제 중 ${d.correct}개 정답">
+          <div class="n">${d.solved||''}</div>
+          <div class="col" style="height:${d.solved/max*100}%"><i style="height:${d.solved?d.correct/d.solved*100:0}%"></i></div>
+          <div class="d">${Number(d.date.slice(8))}</div></div>`).join('')}
+      </div><div class="muted small" style="margin-top:6px">진한 부분 = 첫 시도에 맞힌 문제</div></div>
+      <h2 class="sec">카테고리별 정답률 (전체 기간)</h2>
+      <div class="card list">${s.categories.length ? s.categories.map(c => `<div class="item" style="display:block">
+        <div class="row"><div class="grow name">${esc(c.name)}</div><div class="small muted">${c.solved}문제 · ${pct(c.accuracy)}</div></div>
+        <div class="meter"><i style="width:${c.accuracy||0}%"></i></div></div>`).join('') : '<div class="empty">아직 기록이 없어요.</div>'}</div>
+      <p class="muted small" style="margin:12px 4px">모든 통계는 문제당 첫 시도 기준이에요. 전체 ${s.total.solved}문제, 정답률 ${pct(s.total.accuracy)}.</p>`;
+  },
+
+  settings(){
+    const st = S.boot.settings;
+    return `
+      <div class="card">
+        <label class="f" for="s-qc" style="margin-top:0">한 번에 출제할 문제 수 (1~5)</label>
+        <input id="s-qc" type="number" min="1" max="5" value="${st.quiz_count}">
+        <label class="f" for="s-cd">쿨다운 (분, 0 = 앱 열 때마다)</label>
+        <input id="s-cd" type="number" min="0" value="${st.cooldown_min}">
+        <label class="f" for="s-ma">문제당 최대 시도 횟수</label>
+        <input id="s-ma" type="number" min="1" max="10" value="${st.max_attempts}">
+        <label class="f" for="s-nr">새 문제 섞는 비율 (%)</label>
+        <input id="s-nr" type="number" min="0" max="100" value="${st.new_ratio}">
+        <div class="row" style="margin-top:14px"><div class="grow">객관식 선택지 섞기</div>
+          <label class="switch"><input id="s-sh" type="checkbox" ${st.shuffle_choices?'checked':''}><span></span></label></div>
+        <div style="margin-top:16px"><button class="btn primary big" data-act="saveSettings">저장</button></div>
+      </div>
+      <div class="card">
+        <div class="muted small">마지막 퀴즈 완료</div><div>${st.last_quiz_at ? fmt(st.last_quiz_at) : '없음'}</div>
+      </div>
+      <h2 class="sec">연결</h2>
+      <div class="card">
+        <div class="muted small" style="overflow-wrap:anywhere">${esc(S.api)}</div>
+        <div class="btns" style="margin-top:10px"><button class="btn danger" data-act="logout">토큰·주소 재설정</button></div>
+      </div>`;
+  },
+};
+
+function filteredQs(){
+  const f = S.f, t = f.text.trim().toLowerCase();
+  return S.qs.filter(q =>
+    (!f.cat || q.category === f.cat) &&
+    (!f.src || q.source === f.src) &&
+    (!t || [q.question,q.answer,q.explanation,q.source,q.source_text,q.accepted.join(' ')].join(' ').toLowerCase().includes(t))
+  ).sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
+}
+
+function qCard(q, opt){
+  opt = opt || {};
+  const open = S.open.has(q.q_id) && !S.selMode;
+  const p = q.progress;
+  const sel = S.selMode && S.sel.has(q.q_id);
+  const badges = `<span class="badge">${TYPE_LABEL[q.type]}</span>${p && p.in_wrong ? '<span class="badge bad">오답</span>' : ''}`;
+  let meta = esc(q.category) + (q.source ? ' · ' + esc(q.source) : '');
+  if(opt.wrong && p) meta = `틀림 ${p.wrong_count} · 건너뜀 ${p.skip_count}${q.last_wrong_at ? ' · ' + fmt(q.last_wrong_at) : ''}`;
+  return `<div class="card q ${open?'':'clamp'} ${sel?'sel':''}" data-act="${S.selMode?'sel':'open'}" data-id="${q.q_id}">
+    <div class="row" style="align-items:flex-start">
+      ${S.selMode ? `<input type="checkbox" ${sel?'checked':''} style="margin-top:4px;pointer-events:none" aria-label="선택">` : ''}
+      <div class="grow"><div>${badges}<span class="muted small">${meta}</span></div>
+      <div class="qtext" style="margin-top:4px">${esc(q.question)}</div></div></div>
+    ${open ? qDetail(q, opt) : ''}</div>`;
+}
+function qDetail(q, opt){
+  const p = q.progress;
+  const kv = (k, v) => v ? `<div class="kv"><b>${k}</b><div>${esc(v)}</div></div>` : '';
+  return `<div class="detail">
+    ${q.choices.length ? kv('선택지', q.choices.join('  |  ')) : ''}
+    ${kv('정답', q.answer)}${kv('허용 정답', q.accepted.join(', '))}${kv('해설', q.explanation)}
+    ${kv('출처', q.source)}${kv('원문', q.source_text)}
+    ${q.decks.length ? `<div class="kv"><b>덱</b><div>${q.decks.map(d => `<span class="chip">${esc(d)}</span>`).join('')}</div></div>` : ''}
+    <div class="muted small" style="margin:8px 0">${p ? `박스 ${p.box} · 맞힘 ${p.correct_count} · 틀림 ${p.wrong_count} · 건너뜀 ${p.skip_count}${p.due_at ? ' · 다음 복습 ' + fmt(p.due_at) : ''}` : '아직 안 푼 문제'}</div>
+    <div class="btns">
+      ${opt.wrong ? `<button class="btn" data-act="wrongRemove" data-id="${q.q_id}">오답에서 빼기</button>` : ''}
+      ${opt.deck ? `<button class="btn" data-act="deckOut" data-id="${q.q_id}" data-deck="${esc(opt.deck)}">덱에서 빼기</button>` : ''}
+      <button class="btn" data-act="edit" data-id="${q.q_id}">수정</button>
+      <button class="btn danger" data-act="del" data-id="${q.q_id}">삭제</button>
+    </div></div>`;
+}
+function deckCard(d){
+  const open = S.deckOpen === d.name;
+  const qs = open ? S.qs.filter(q => q.decks.includes(d.name)) : [];
+  return `<div class="card">
+    <div class="row"><div class="grow"><div class="name">${esc(d.name)}</div>
+      <div class="muted small">${d.count}문제 · 정답률 ${pct(d.accuracy)} · ${d.active ? '출제 범위에 포함' : '출제 범위 밖'}</div></div>
+      ${sw('scope', `data-kind="deck" data-name="${esc(d.name)}"`, d.active)}</div>
+    <div class="btns" style="margin-top:10px">
+      <button class="btn" data-act="deckToggle" data-name="${esc(d.name)}">${open ? '접기' : '문제 보기'}</button>
+      <button class="btn primary" data-act="practice" data-scope="deck:${esc(d.name)}" data-label="${esc(d.name)}" ${d.count?'':'disabled'}>연습</button>
+      <button class="btn" data-act="deckRename" data-name="${esc(d.name)}">이름 수정</button>
+      <button class="btn danger" data-act="deckDelete" data-name="${esc(d.name)}">삭제</button>
+    </div>
+    ${open ? (qs.length ? `<div style="margin-top:6px">${qs.map(q => qCard(q, { deck:d.name })).join('')}</div>` : '<div class="empty">비어 있어요. 문제 탭에서 담아 보세요.</div>') : ''}
+  </div>`;
+}
+function selBar(){
+  return `<div class="selbar"><div class="grow small"><b>${S.sel.size}</b>개 선택</div>
+    <button class="btn primary" data-act="pickDeck" data-mode="add" ${S.sel.size?'':'disabled'}>덱에 담기</button>
+    <button class="btn" data-act="pickDeck" data-mode="remove" ${S.sel.size?'':'disabled'}>덱에서 빼기</button></div>`;
+}
+
+/* ───── 모달 ───── */
+function modal(html){
+  closeModal();
+  const m = document.createElement('div'); m.className = 'modal'; m.id = 'modal';
+  m.innerHTML = `<div class="sheet" role="dialog" aria-modal="true">${html}</div>`;
+  m.addEventListener('click', e => { if(e.target === m) closeModal(); });
+  document.body.appendChild(m);
+}
+function closeModal(){ const m = $('#modal'); if(m) m.remove(); }
+
+function openDeckPicker(mode){
+  const decks = S.boot.decks;
+  modal(`<div class="row"><h3 class="grow" style="margin:0">${mode==='add'?'어느 덱에 담을까요?':'어느 덱에서 뺄까요?'}</h3><button class="btn ghost" data-act="closeModal">닫기</button></div>
+    <div class="card list">${decks.length ? decks.map(d => `<div class="item" data-act="deckPick" data-mode="${mode}" data-name="${esc(d.name)}" style="cursor:pointer">
+      <div class="grow name">${esc(d.name)}</div><div class="muted small">${d.count}문제</div></div>`).join('') : '<div class="empty">덱이 없어요.</div>'}</div>
+    ${mode==='add' ? `<label class="f" for="pick-new">새 덱 만들어 담기</label>
+      <div class="row"><input id="pick-new" type="text" class="grow" placeholder="덱 이름"><button class="btn primary" data-act="deckPickNew">담기</button></div>` : ''}`);
+}
+
+function openEditor(id){
+  const q = S.qs.find(x => x.q_id === id); if(!q) return;
+  const cats = S.boot.categories.map(c => `<option value="${esc(c.name)}">`).join('');
+  modal(`<div class="row"><h3 class="grow" style="margin:0">문제 수정</h3><button class="btn ghost" data-act="closeModal">닫기</button></div>
+    <label class="f" for="e-cat">카테고리</label><input id="e-cat" type="text" list="cat-list" value="${esc(q.category)}"><datalist id="cat-list">${cats}</datalist>
+    <label class="f" for="e-type">유형</label><select id="e-type">${Object.entries(TYPE_LABEL).map(([k,l]) => `<option value="${k}" ${q.type===k?'selected':''}>${l} (${k})</option>`).join('')}</select>
+    <label class="f" for="e-q">문제</label><textarea id="e-q">${esc(q.question)}</textarea>
+    <label class="f" for="e-ch">선택지 (객관식·OX, " | "로 구분)</label><input id="e-ch" type="text" value="${esc(q.choices.join(' | '))}">
+    <label class="f" for="e-ans">정답</label><input id="e-ans" type="text" value="${esc(q.answer)}">
+    <label class="f" for="e-acc">허용 정답 (" | "로 구분)</label><input id="e-acc" type="text" value="${esc(q.accepted.join(' | '))}">
+    <label class="f" for="e-exp">해설</label><textarea id="e-exp">${esc(q.explanation)}</textarea>
+    <label class="f" for="e-src">출처</label><input id="e-src" type="text" value="${esc(q.source)}">
+    <label class="f" for="e-st">원문</label><textarea id="e-st">${esc(q.source_text)}</textarea>
+    <label class="f" for="e-dk">덱 (" | "로 구분)</label><input id="e-dk" type="text" value="${esc(q.decks.join(' | '))}">
+    <div style="margin-top:16px"><button class="btn primary big" data-act="saveEdit" data-id="${q.q_id}">저장</button></div>`);
+}
+
+/* ───── 연습 ───── */
+let P = null;
+function startPractice(scope, label){
+  P = { scope, label, queue:[], seen:[], i:0, attempt:1, max:3, tally:{correct:0,wrong:0,skip:0}, phase:'loading', res:null, wrongPicks:[], busy:false };
+  drawPractice(); fetchMore();
+}
+async function fetchMore(){
+  try{
+    const r = await api('next', { practice:1, scope:P.scope, count:10, exclude:P.seen.join(',') });
+    if(!P) return;
+    if(r.status !== 'ok'){ if(P.i >= P.queue.length){ P.phase = 'end'; } }
+    else { P.max = r.max_attempts; P.queue.push(...r.questions); r.questions.forEach(q => P.seen.push(q.q_id)); if(P.phase !== 'question'){ P.phase='question'; P.attempt=1; } }
+  }catch(e){ toast(e.message); P.phase = 'end'; }
+  drawPractice();
+}
+function drawPractice(){
+  let o = $('#practice');
+  if(!P){ if(o) o.remove(); return; }
+  if(!o){ o = document.createElement('div'); o.id = 'practice'; o.className = 'overlay'; document.body.appendChild(o); }
+  const done = P.tally.correct + P.tally.wrong + P.tally.skip;
+  const head = `<div class="row" style="margin-bottom:8px"><div class="grow"><div class="small muted">연습 · ${esc(P.label)}</div>
+    <div class="small">${done}문제 · 정답 ${P.tally.correct} · 틀림 ${P.tally.wrong} · 건너뜀 ${P.tally.skip}</div></div>
+    <button class="btn" data-act="pClose">그만하기</button></div>`;
+  let body = '';
+  if(P.phase === 'loading') body = '<div class="empty"><span class="spin"></span></div>';
+  else if(P.phase === 'end') body = `<div class="card" style="text-align:center;padding:28px 14px">
+      <div style="font-size:40px">${done ? '👏' : '📭'}</div>
+      <div style="font-size:18px;font-weight:700;margin:6px 0">${done ? '연습 끝!' : '풀 문제가 없어요'}</div>
+      <div class="muted">${done ? `${done}문제 중 첫 시도 정답 ${P.tally.correct}개` : '범위를 확인해 보세요.'}</div>
+      <div style="margin-top:16px"><button class="btn primary big" data-act="pClose">닫기</button></div></div>`;
+  else {
+    const q = P.queue[P.i], r = P.res;
+    const qtext = esc(q.question).replace(/_{2,}/g, m => `<u style="text-decoration-color:var(--accent)">${'&nbsp;'.repeat(Math.max(4, m.length))}</u>`);
+    let inputs = '';
+    if(P.phase === 'question'){
+      if(q.input === 'choose'){
+        inputs = q.choices.map((c, k) => {
+          const isSkip = k === q.choices.length - 1;
+          const dis = P.wrongPicks.includes(c) || P.busy;
+          return `<button class="choice ${isSkip?'skip':''}" data-act="pAns" data-v="${esc(c)}" ${dis?'disabled':''}>${esc(c)}</button>`;
+        }).join('');
+      } else {
+        inputs = `<input id="p-in" type="text" autocomplete="off" autocapitalize="off" placeholder="답 입력" ${P.busy?'disabled':''}>
+          <div class="btns" style="margin-top:10px"><button class="btn primary grow" data-act="pSubmit" ${P.busy?'disabled':''}>제출</button>
+          <button class="btn" data-act="pAns" data-v="" ${P.busy?'disabled':''}>건너뛰기</button></div>`;
+      }
+    }
+    let fb = '';
+    if(r && r.result === 'correct') fb = `<div class="fb ok">정답! ⭕</div>`;
+    else if(r && r.result === 'wrong' && !r.finished) fb = `<div class="fb bad">틀렸어요 ❌ 남은 기회 ${r.attempts_left}번</div>`;
+    if(P.phase === 'result'){
+      const kv = (k, v) => v ? `<div class="kv"><b>${k}</b><div>${esc(v)}</div></div>` : '';
+      fb = `<div class="fb bad">${r.result === 'skip' ? '건너뛰었어요' : '아쉬워요 ❌'}</div>
+        <div class="card">${kv('정답', r.answer)}${kv('해설', r.explanation)}${kv('출처', r.source)}${kv('원문', r.source_text)}</div>
+        <button class="btn primary big" data-act="pNext">다음 문제</button>`;
+    }
+    body = `<div class="card"><div class="small muted"><span class="badge">${TYPE_LABEL[q.type]}</span>${esc(q.category)}${P.attempt>1 && P.phase==='question' ? ` · ${P.attempt}번째 시도` : ''}</div>
+      <div class="qbig">${qtext}</div>${inputs}</div>${fb}`;
+  }
+  o.innerHTML = `<div class="inner">${head}${body}</div>`;
+  const inp = $('#p-in'); if(inp && !P.busy){ inp.focus(); inp.addEventListener('keydown', e => { if(e.key === 'Enter' && !e.isComposing) answer(inp.value); }); }
+}
+async function answer(given){
+  if(!P || P.busy || P.phase !== 'question') return;
+  const q = P.queue[P.i];
+  P.busy = true; drawPractice();
+  try{
+    const r = await api('answer', { q_id:q.q_id, given_answer:given, attempt_no:P.attempt });
+    if(P.attempt === 1) P.tally[r.result]++;
+    P.res = r; P.busy = false;
+    if(r.result === 'correct'){ drawPractice(); setTimeout(nextQ, 900); }
+    else if(!r.finished){ P.attempt++; if(q.input === 'choose') P.wrongPicks.push(given); drawPractice(); }
+    else { P.phase = 'result'; drawPractice(); }
+  }catch(e){ P.busy = false; toast(e.message); drawPractice(); }
+}
+function nextQ(){
+  if(!P) return;
+  P.i++; P.attempt = 1; P.res = null; P.wrongPicks = []; P.phase = 'question';
+  if(P.i >= P.queue.length){ P.phase = 'loading'; drawPractice(); fetchMore(); return; }
+  drawPractice(); window.scrollTo(0,0); $('#practice').scrollTo(0,0);
+}
+function closePractice(){ P = null; drawPractice(); loadAll(); }
+
+/* ───── 이벤트 ───── */
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-act]');
+  if(!el || el.tagName === 'SELECT' || (el.tagName === 'INPUT' && el.type !== 'checkbox')) return;
+  const a = el.dataset.act, d = el.dataset;
+  if(el.tagName === 'INPUT' && el.type === 'checkbox') return; // change 이벤트에서 처리
+  switch(a){
+    case 'tab': setTab(d.v); break;
+    case 'reload': loadAll(); break;
+    case 'login': {
+      const api_ = $('#in-api').value.trim(), tok = $('#in-token').value.trim();
+      if(!api_ || !tok){ toast('주소와 토큰을 모두 입력하세요.'); return; }
+      S.api = api_; S.token = tok;
+      try{ await api('getSettings'); store.set('mq_api', api_); store.set('mq_token', tok); loadAll(); }
+      catch(err){ toast(err.message); S.token=''; render(); }
+      break;
+    }
+    case 'logout': if(confirm('이 기기에 저장된 주소와 토큰을 지울까요?')){ store.del('mq_token'); store.del('mq_api'); S.token=''; S.api=DEFAULT_API; S.boot=null; render(); } break;
+    case 'open': {
+      if(e.target.closest('button')) return;
+      S.open.has(d.id) ? S.open.delete(d.id) : S.open.add(d.id); render(); break;
+    }
+    case 'sel': S.sel.has(d.id) ? S.sel.delete(d.id) : S.sel.add(d.id); render(); break;
+    case 'selmode': S.selMode = !S.selMode; S.sel.clear(); render(); break;
+    case 'wsort': S.wrongSort = d.v; render(); break;
+    case 'practice': startPractice(d.scope, d.label); break;
+    case 'pClose': closePractice(); break;
+    case 'pAns': answer(d.v); break;
+    case 'pSubmit': answer($('#p-in').value); break;
+    case 'pNext': nextQ(); break;
+    case 'closeModal': closeModal(); break;
+    case 'edit': openEditor(d.id); break;
+    case 'saveEdit': {
+      const v = id => $(id).value;
+      const fields = { category:v('#e-cat'), type:v('#e-type'), question:v('#e-q'), choices:v('#e-ch'), answer:v('#e-ans'),
+        accepted_answers:v('#e-acc'), explanation:v('#e-exp'), source:v('#e-src'), source_text:v('#e-st'), decks:v('#e-dk') };
+      if(await run(() => api('updateQuestion', { q_id:d.id, fields }), '저장했어요')){ closeModal(); loadAll(); }
+      break;
+    }
+    case 'del':
+      if(confirm('이 문제를 삭제할까요? (시트에는 deleted=TRUE로 남아요)') && await run(() => api('deleteQuestion', { q_id:d.id }), '삭제했어요')) loadAll();
+      break;
+    case 'wrongRemove':
+      if(await run(() => api('wrongRemove', { q_ids:[d.id] }), '오답에서 뺐어요')) loadAll();
+      break;
+    case 'deckOut':
+      if(await run(() => api('deckRemove', { deck:d.deck, q_ids:[d.id] }), '덱에서 뺐어요')) loadAll();
+      break;
+    case 'pickDeck': openDeckPicker(d.mode); break;
+    case 'deckPick': case 'deckPickNew': {
+      const name = a === 'deckPickNew' ? $('#pick-new').value.trim() : d.name;
+      if(!name){ toast('덱 이름을 입력하세요.'); return; }
+      const mode = a === 'deckPickNew' ? 'add' : d.mode;
+      const ids = [...S.sel];
+      if(await run(() => api(mode === 'add' ? 'deckAdd' : 'deckRemove', { deck:name, q_ids:ids }), mode === 'add' ? `「${name}」에 담았어요` : `「${name}」에서 뺐어요`)){
+        closeModal(); S.selMode = false; S.sel.clear(); loadAll();
+      }
+      break;
+    }
+    case 'deckCreate': {
+      const name = $('#new-deck').value.trim();
+      if(!name){ toast('덱 이름을 입력하세요.'); return; }
+      if(await run(() => api('deckCreate', { name }), '덱을 만들었어요')) loadAll();
+      break;
+    }
+    case 'deckToggle': S.deckOpen = S.deckOpen === d.name ? null : d.name; render(); break;
+    case 'deckRename': {
+      const to = prompt('새 덱 이름', d.name);
+      if(to && to.trim() && to.trim() !== d.name && await run(() => api('deckRename', { from:d.name, to:to.trim() }), '이름을 바꿨어요')){ if(S.deckOpen===d.name) S.deckOpen=to.trim(); loadAll(); }
+      break;
+    }
+    case 'deckDelete':
+      if(confirm(`「${d.name}」 덱을 삭제할까요? 문제는 지워지지 않아요.`) && await run(() => api('deckDelete', { name:d.name }), '덱을 삭제했어요')) loadAll();
+      break;
+    case 'saveSettings': {
+      const settings = { quiz_count:$('#s-qc').value, cooldown_min:$('#s-cd').value, max_attempts:$('#s-ma').value,
+        new_ratio:$('#s-nr').value, shuffle_choices:$('#s-sh').checked };
+      const r = await run(() => api('saveSettings', { settings }), '저장했어요');
+      if(r){ S.boot.settings = r.settings; render(); }
+      break;
+    }
+  }
+});
+document.addEventListener('change', async e => {
+  const el = e.target;
+  if(el.dataset.act === 'scope'){
+    const r = await run(() => api('setScope', { kind:el.dataset.kind, name:el.dataset.name, active:el.checked }));
+    if(r){ S.boot = await run(() => api('bootstrap')) || S.boot; render(); } else { el.checked = !el.checked; }
+  } else if(el.dataset.act === 'f' && el.tagName === 'SELECT'){
+    S.f[el.dataset.k] = el.value; render();
+  }
+});
+document.addEventListener('input', e => {
+  const el = e.target;
+  if(el.dataset.act === 'f' && el.tagName === 'INPUT'){
+    S.f[el.dataset.k] = el.value;
+    clearTimeout(window._ft);
+    window._ft = setTimeout(() => {
+      const pos = el.selectionStart; render();
+      const n = document.querySelector('input[data-k="text"]'); if(n){ n.focus(); try{ n.setSelectionRange(pos,pos); }catch(_){} }
+    }, 250);
+  }
+});
+
+render();
+if(S.api && S.token) loadAll();
+</script>
+</body>
+</html>
