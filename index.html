@@ -100,6 +100,14 @@ nav.tabs button.on{color:var(--accent);font-weight:700}
 .choice{display:block;width:100%;text-align:left;margin:8px 0;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:16px;cursor:pointer}
 .choice.skip{color:var(--muted);text-align:center;background:transparent}
 .choice:disabled{opacity:.45}
+.qimgs{display:flex;flex-direction:column;gap:8px;margin:4px 0 12px}
+.qimgs img{width:100%;max-height:52vh;object-fit:contain;border-radius:12px;background:var(--line)}
+.picgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+.picgrid .choice{margin:0;padding:8px;text-align:center;font-weight:700}
+.picgrid .choice img{display:block;width:100%;aspect-ratio:1;object-fit:contain;border-radius:8px;background:var(--line);margin-bottom:6px}
+.thumbs{display:flex;gap:6px;flex-wrap:wrap}
+.thumbs img{width:72px;height:72px;object-fit:cover;border-radius:8px;background:var(--line)}
+.thumbs figure{margin:0;text-align:center;font-size:12px}
 .fb{border-radius:12px;padding:12px 14px;margin:12px 0;font-weight:600}
 .fb.ok{background:var(--ok-weak);color:var(--ok)}
 .fb.bad{background:var(--bad-weak);color:var(--bad)}
@@ -361,13 +369,16 @@ function qCard(q, opt){
     <div class="row" style="align-items:flex-start">
       ${S.selMode ? `<input type="checkbox" ${sel?'checked':''} style="margin-top:4px;pointer-events:none" aria-label="선택">` : ''}
       <div class="grow"><div>${badges}<span class="muted small">${meta}</span></div>
-      <div class="qtext" style="margin-top:4px">${esc(q.question)}</div></div></div>
+      <div class="qtext" style="margin-top:4px">${(q.images||[]).length || (q.choice_images||[]).length ? '📷 ' : ''}${esc(q.question)}</div></div></div>
     ${open ? qDetail(q, opt) : ''}</div>`;
 }
 function qDetail(q, opt){
   const p = q.progress;
   const kv = (k, v) => v ? `<div class="kv"><b>${k}</b><div>${esc(v)}</div></div>` : '';
+  const imgs = q.images || [], cimgs = q.choice_images || [];
   return `<div class="detail">
+    ${imgs.length ? `<div class="kv"><b>사진</b><div class="thumbs">${imgs.map(u => `<img src="${esc(u)}" alt="" loading="lazy">`).join('')}</div></div>` : ''}
+    ${cimgs.length ? `<div class="kv"><b>보기 사진</b><div class="thumbs">${cimgs.map((u, k) => `<figure><img src="${esc(u)}" alt="" loading="lazy"><figcaption>${k+1}. ${esc(q.choices[k]||'')}</figcaption></figure>`).join('')}</div></div>` : ''}
     ${q.choices.length ? kv('선택지', q.choices.join('  |  ')) : ''}
     ${kv('정답', q.answer)}${kv('허용 정답', q.accepted.join(', '))}${kv('해설', q.explanation)}
     ${kv('출처', q.source)}${kv('원문', q.source_text)}
@@ -435,6 +446,8 @@ function openEditor(id){
     <label class="f" for="e-src">출처</label><input id="e-src" type="text" value="${esc(q.source)}">
     <label class="f" for="e-st">원문</label><textarea id="e-st">${esc(q.source_text)}</textarea>
     <label class="f" for="e-dk">덱 (" | "로 구분)</label><input id="e-dk" type="text" value="${esc(q.decks.join(' | '))}">
+    <label class="f" for="e-img">문제 사진 주소 (" | "로 구분, 드라이브 공유 링크 가능)</label><input id="e-img" type="text" value="${esc((q.images||[]).join(' | '))}">
+    <label class="f" for="e-cimg">보기 사진 주소 (선택지와 같은 순서·개수)</label><input id="e-cimg" type="text" value="${esc((q.choice_images||[]).join(' | '))}">
     <div style="margin-top:16px"><button class="btn primary big" data-act="saveEdit" data-id="${q.q_id}">저장</button></div>`);
 }
 
@@ -473,7 +486,13 @@ function drawPractice(){
     const qtext = esc(q.question).replace(/_{2,}/g, m => `<u style="text-decoration-color:var(--accent)">${'&nbsp;'.repeat(Math.max(4, m.length))}</u>`);
     let inputs = '';
     if(P.phase === 'question'){
-      if(q.input === 'choose'){
+      if(q.input === 'choose' && (q.choice_images||[]).length){
+        const btn = (c, k) => { const dis = P.wrongPicks.includes(c) || P.busy;
+          return `<button class="choice" data-act="pAns" data-v="${esc(c)}" ${dis?'disabled':''}><img src="${esc(q.choice_images[k])}" alt="보기 ${k+1}">${esc(c)}</button>`; };
+        const skip = q.choices[q.choices.length - 1];
+        inputs = `<div class="picgrid">${q.choice_images.map((u, k) => btn(q.choices[k], k)).join('')}</div>
+          <button class="choice skip" data-act="pAns" data-v="${esc(skip)}" ${P.busy?'disabled':''}>${esc(skip)}</button>`;
+      } else if(q.input === 'choose'){
         inputs = q.choices.map((c, k) => {
           const isSkip = k === q.choices.length - 1;
           const dis = P.wrongPicks.includes(c) || P.busy;
@@ -495,6 +514,7 @@ function drawPractice(){
         <button class="btn primary big" data-act="pNext">다음 문제</button>`;
     }
     body = `<div class="card"><div class="small muted"><span class="badge">${TYPE_LABEL[q.type]}</span>${esc(q.category)}${P.attempt>1 && P.phase==='question' ? ` · ${P.attempt}번째 시도` : ''}</div>
+      ${(q.image||[]).length ? `<div class="qimgs">${q.image.map(u => `<img src="${esc(u)}" alt="문제 사진">`).join('')}</div>` : ''}
       <div class="qbig">${qtext}</div>${inputs}</div>${fb}`;
   }
   o.innerHTML = `<div class="inner">${head}${body}</div>`;
@@ -556,7 +576,7 @@ document.addEventListener('click', async e => {
     case 'saveEdit': {
       const v = id => $(id).value;
       const fields = { category:v('#e-cat'), type:v('#e-type'), question:v('#e-q'), choices:v('#e-ch'), answer:v('#e-ans'),
-        accepted_answers:v('#e-acc'), explanation:v('#e-exp'), source:v('#e-src'), source_text:v('#e-st'), decks:v('#e-dk') };
+        accepted_answers:v('#e-acc'), explanation:v('#e-exp'), source:v('#e-src'), source_text:v('#e-st'), decks:v('#e-dk'), image:v('#e-img'), choice_images:v('#e-cimg') };
       if(await run(() => api('updateQuestion', { q_id:d.id, fields }), '저장했어요')){ closeModal(); loadAll(); }
       break;
     }
