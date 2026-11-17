@@ -126,7 +126,8 @@ const store = {
 };
 const S = {
   api: store.get('mq_api') || DEFAULT_API,
-  token: store.get('mq_token') || '',
+  /* 주소 끝 #t=토큰 으로 열면 로그인 없이 바로 연결(토큰은 저장소에 넣지 않음) */
+  token: (function(){ const m = /[#&]t=([^&]+)/.exec(location.hash); if(m){ const t = decodeURIComponent(m[1]).trim(); store.set('mq_token', t); return t; } return store.get('mq_token') || ''; })(),
   tab: store.get('mq_tab') || 'home',
   boot: null, qs: null, stats: null, loading: false,
   f: { cat:'', src:'', text:'', only:'' },
